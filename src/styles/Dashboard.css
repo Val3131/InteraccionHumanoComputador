@@ -1,0 +1,147 @@
+
+.dashboard {
+  min-height: 100vh;
+  background: #FAF7F5;
+  font-family: 'Inter', sans-serif;
+  color: #2B2B2B;
+}
+
+.dashboard-header {
+  background: #FFFFFF;
+  padding: 20px clamp(20px, 6vw, 90px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid #EADADA;
+}
+
+.dashboard-header h1 {
+  font-family: 'Playfair Display', serif;
+  color: #8B5E5E;
+  font-size: 30px;
+  margin: 0;
+}
+
+.dashboard-header button {
+  background: #8B5E5E;
+  color: #FFFFFF;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dashboard-header button:hover {
+  background: #714848;
+}
+
+.dashboard-contenido {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 70px 25px;
+}
+
+.dashboard-etiqueta {
+  display: inline-block;
+  color: #8B5E5E;
+  background: #F3E3E3;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.dashboard-contenido h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 4vw, 42px);
+  color: #8B5E5E;
+  margin-bottom: 12px;
+}
+
+.dashboard-contenido > p {
+  color: #666666;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.dashboard-tarjeta {
+  background: #FFFFFF;
+  border: 1px solid #F0E4E4;
+  padding: 28px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(139, 94, 94, 0.07);
+}
+
+.dashboard-tarjeta span {
+  color: #8B5E5E;
+  font-size: 32px;
+}
+
+.dashboard-tarjeta h3 {
+  margin: 15px 0 10px;
+  font-size: 18px;
+}
+
+.dashboard-tarjeta p {
+  color: #777777;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-header h1 {
+    font-size: 25px;
+  }
+
+  .dashboard-contenido {
+    padding-top: 45px;
+  }
+}
+.dashboard-abrir {
+  margin-top: 20px;
+  padding: 11px 16px;
+  background: #8B5E5E;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dashboard-abrir:hover {
+  background: #714848;
+}
+
+.dashboard-header-acciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dashboard-header .dashboard-perfil-boton {
+  background: #FAF7F5;
+  color: #8B5E5E;
+  border: 1px solid #D8A7A7;
+}
+
+.dashboard-header .dashboard-perfil-boton:hover {
+  background: #F3E3E3;
+}
