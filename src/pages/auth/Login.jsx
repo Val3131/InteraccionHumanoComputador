@@ -24,7 +24,17 @@ export default function Login({
     }
 
     const resultado = intentarLogin(correo, contrasena);
-    setMensaje(resultado.mensaje);
+
+    if (!resultado.exito) {
+      setMensaje(resultado.mensaje);
+      setContrasena("");
+      return;
+    }
+
+    setMensaje("");
+    setContrasena("");
+    // AuthContext actualiza el usuario y App
+    // mostrará automáticamente el panel de Cliente.
   };
 
   return (
@@ -116,7 +126,7 @@ export default function Login({
           </button>
 
           {mensaje && (
-            <p className="login-message" role="status">
+            <p className="login-message" role="alert">
               {mensaje}
             </p>
           )}
@@ -160,7 +170,9 @@ export default function Login({
 
             <button
               type="button"
-              onClick={() => onIniciarDemo("administrador")}
+              onClick={() =>
+                onIniciarDemo("administrador")
+              }
             >
               Entrar como Administrador
             </button>
@@ -170,4 +182,3 @@ export default function Login({
     </main>
   );
 }
-

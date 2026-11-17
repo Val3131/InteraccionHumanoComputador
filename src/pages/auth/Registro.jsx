@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import "./Registro.css";
 
 const datosIniciales = {
@@ -14,10 +15,13 @@ const datosIniciales = {
 };
 
 export default function Registro({ onVolverLogin }) {
+  const { registrarUsuario } = useAuth();
+
   const [datos, setDatos] = useState(datosIniciales);
-  const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState("");
-  const [mostrarContrasena, setMostrarContrasena] = useState(false);
+  const [exito, setExito] = useState(false);
+  const [mostrarContrasena, setMostrarContrasena] =
+    useState(false);
 
   const cambiarDato = (e) => {
     const { name, value } = e.target;
@@ -27,237 +31,304 @@ export default function Registro({ onVolverLogin }) {
       [name]: value,
     }));
 
-    setErrores((anterior) => ({
-      ...anterior,
-      [name]: "",
-    }));
-
     setMensaje("");
+    setExito(false);
   };
 
-  const validarFormulario = () => {
-    const nuevosErrores = {};
-
-    if (!/^\d{9,12}$/.test(datos.cedula.trim())) {
-      nuevosErrores.cedula = "Ingresá una cédula de 9 a 12 dígitos.";
-    }
-
-    if (datos.nombre.trim().length < 2) {
-      nuevosErrores.nombre = "Ingresá un nombre válido.";
-    }
-
-    if (datos.apellidos.trim().length < 2) {
-      nuevosErrores.apellidos = "Ingresá tus apellidos.";
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo.trim())) {
-      nuevosErrores.correo = "Ingresá un correo electrónico válido.";
-    }
-
-    if (!/^\d{8}$/.test(datos.telefono.replace(/\s|-/g, ""))) {
-      nuevosErrores.telefono = "El teléfono debe tener 8 dígitos.";
-    }
-
-    if (datos.direccion.trim().length < 10) {
-      nuevosErrores.direccion = "Ingresá una dirección más detallada.";
-    }
-
-    const contrasenaSegura =
-      datos.contrasena.length >= 8 &&
-      /[A-Z]/.test(datos.contrasena) &&
-      /[a-z]/.test(datos.contrasena) &&
-      /\d/.test(datos.contrasena) &&
-      /[^A-Za-z0-9]/.test(datos.contrasena);
-
-    if (!contrasenaSegura) {
-      nuevosErrores.contrasena =
-        "Usá al menos 8 caracteres, mayúscula, minúscula, número y símbolo.";
-    }
-
-    if (datos.confirmar !== datos.contrasena) {
-      nuevosErrores.confirmar = "Las contraseñas no coinciden.";
-    }
-
-    return nuevosErrores;
-  };
-
-  const registrarUsuario = (e) => {
+  const registrar = (e) => {
     e.preventDefault();
 
-    const nuevosErrores = validarFormulario();
-    setErrores(nuevosErrores);
+    const resultado = registrarUsuario(datos);
 
-    if (Object.keys(nuevosErrores).length > 0) {
-      setMensaje("");
-      return;
+    setMensaje(resultado.mensaje);
+    setExito(resultado.exito);
+
+    if (resultado.exito) {
+      setDatos(datosIniciales);
     }
+  };
 
-    // Por ahora no almacenamos contraseñas en el navegador.
-    // El registro definitivo necesitará un servicio de autenticación.
-    setMensaje(
-      "¡Formulario válido! El registro está listo para conectarse al sistema de usuarios."
-    );
+  const estiloCampo = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "7px",
+    marginBottom: "15px",
+    textAlign: "left",
+  };
+
+  const estiloInput = {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #E7DADA",
+    background: "#FFFFFF",
+    color: "#2B2B2B",
   };
 
   return (
-    <main className="registro-page">
-      <section className="registro-card">
-        <div className="registro-encabezado">
-          <div className="registro-corazon">♡</div>
-          <h1>BellasBotique</h1>
-          <p>Creá tu cuenta y descubrí nuestra colección</p>
-          <h2>Crear una cuenta</h2>
-          <span>Completá tus datos para registrarte</span>
+    <main
+      className="registro-page"
+      style={{
+        minHeight: "100vh",
+        background: "#FAF7F5",
+        display: "flex",
+        justifyContent: "center",
+        padding: "35px 16px",
+        boxSizing: "border-box",
+      }}
+    >
+      <section
+        className="registro-card"
+        style={{
+          width: "100%",
+          maxWidth: "560px",
+          background: "#FFFFFF",
+          borderRadius: "18px",
+          padding: "32px",
+          boxSizing: "border-box",
+          boxShadow: "0 12px 35px rgba(139,94,94,0.10)",
+          height: "fit-content",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <h1
+            style={{
+              color: "#8B5E5E",
+              fontFamily: "'Playfair Display', serif",
+              marginBottom: "8px",
+            }}
+          >
+            BellasBotique
+          </h1>
+
+          <h2 style={{ color: "#8B5E5E" }}>
+            Crear cuenta
+          </h2>
+
+          <p style={{ color: "#777777", fontSize: "14px" }}>
+            Registrate para comenzar a comprar.
+          </p>
         </div>
 
-        <form onSubmit={registrarUsuario} noValidate>
-          <div className="registro-grid">
-            <Campo
-              label="Cédula"
+        <form onSubmit={registrar}>
+          <div style={estiloCampo}>
+            <label htmlFor="registro-cedula">
+              Número de cédula
+            </label>
+            <input
+              id="registro-cedula"
               name="cedula"
               value={datos.cedula}
               onChange={cambiarDato}
-              error={errores.cedula}
-              placeholder="Ej. 101230456"
+              placeholder="Ejemplo: 123456789"
+              style={estiloInput}
+              required
             />
+          </div>
 
-            <Campo
-              label="Nombre"
+          <div style={estiloCampo}>
+            <label htmlFor="registro-nombre">
+              Nombre
+            </label>
+            <input
+              id="registro-nombre"
               name="nombre"
               value={datos.nombre}
               onChange={cambiarDato}
-              error={errores.nombre}
-              placeholder="Tu nombre"
+              style={estiloInput}
+              required
             />
+          </div>
 
-            <Campo
-              label="Apellidos"
+          <div style={estiloCampo}>
+            <label htmlFor="registro-apellidos">
+              Apellidos
+            </label>
+            <input
+              id="registro-apellidos"
               name="apellidos"
               value={datos.apellidos}
               onChange={cambiarDato}
-              error={errores.apellidos}
-              placeholder="Tus apellidos"
+              style={estiloInput}
+              required
             />
+          </div>
 
-            <Campo
-              label="Teléfono"
+          <div style={estiloCampo}>
+            <label htmlFor="registro-correo">
+              Correo electrónico
+            </label>
+            <input
+              id="registro-correo"
+              name="correo"
+              type="email"
+              value={datos.correo}
+              onChange={cambiarDato}
+              placeholder="ejemplo@correo.com"
+              style={estiloInput}
+              required
+              autoComplete="email"
+            />
+          </div>
+
+          <div style={estiloCampo}>
+            <label htmlFor="registro-telefono">
+              Teléfono
+            </label>
+            <input
+              id="registro-telefono"
               name="telefono"
+              type="tel"
               value={datos.telefono}
               onChange={cambiarDato}
-              error={errores.telefono}
               placeholder="88888888"
+              style={estiloInput}
+              required
             />
           </div>
 
-          <Campo
-            label="Correo electrónico"
-            name="correo"
-            type="email"
-            value={datos.correo}
-            onChange={cambiarDato}
-            error={errores.correo}
-            placeholder="ejemplo@correo.com"
-          />
-
-          <Campo
-            label="Dirección"
-            name="direccion"
-            value={datos.direccion}
-            onChange={cambiarDato}
-            error={errores.direccion}
-            placeholder="Provincia, cantón, distrito y señas"
-          />
-
-          <div className="registro-campo">
-            <label htmlFor="registro-contrasena">Contraseña</label>
-            <div className="registro-password">
-              <input
-                id="registro-contrasena"
-                name="contrasena"
-                type={mostrarContrasena ? "text" : "password"}
-                value={datos.contrasena}
-                onChange={cambiarDato}
-                placeholder="Creá una contraseña segura"
-                autoComplete="new-password"
-                aria-invalid={Boolean(errores.contrasena)}
-              />
-              <button
-                type="button"
-                onClick={() => setMostrarContrasena(!mostrarContrasena)}
-              >
-                {mostrarContrasena ? "Ocultar" : "Mostrar"}
-              </button>
-            </div>
-            <small>
-              Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.
-            </small>
-            {errores.contrasena && (
-              <p className="registro-error" role="alert">
-                {errores.contrasena}
-              </p>
-            )}
+          <div style={estiloCampo}>
+            <label htmlFor="registro-direccion">
+              Dirección
+            </label>
+            <textarea
+              id="registro-direccion"
+              name="direccion"
+              value={datos.direccion}
+              onChange={cambiarDato}
+              rows="3"
+              style={estiloInput}
+              required
+            />
           </div>
 
-          <Campo
-            label="Confirmar contraseña"
-            name="confirmar"
-            type="password"
-            value={datos.confirmar}
-            onChange={cambiarDato}
-            error={errores.confirmar}
-            placeholder="Repetí tu contraseña"
-          />
+          <div style={estiloCampo}>
+            <label htmlFor="registro-contrasena">
+              Contraseña
+            </label>
+            <input
+              id="registro-contrasena"
+              name="contrasena"
+              type={
+                mostrarContrasena ? "text" : "password"
+              }
+              value={datos.contrasena}
+              onChange={cambiarDato}
+              placeholder="Mínimo 8 caracteres"
+              style={estiloInput}
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+          </div>
 
-          <button className="registro-boton" type="submit">
-            Crear cuenta
-          </button>
+          <div style={estiloCampo}>
+            <label htmlFor="registro-confirmar">
+              Confirmar contraseña
+            </label>
+            <input
+              id="registro-confirmar"
+              name="confirmar"
+              type={
+                mostrarContrasena ? "text" : "password"
+              }
+              value={datos.confirmar}
+              onChange={cambiarDato}
+              style={estiloInput}
+              required
+              autoComplete="new-password"
+            />
+          </div>
+
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "13px",
+              marginBottom: "18px",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={mostrarContrasena}
+              onChange={(e) =>
+                setMostrarContrasena(e.target.checked)
+              }
+            />
+            Mostrar contraseñas
+          </label>
 
           {mensaje && (
-            <p className="registro-exito" role="status">
+            <p
+              role={exito ? "status" : "alert"}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                background: exito
+                  ? "#E5F4E8"
+                  : "#F8E5E5",
+                color: exito
+                  ? "#26743C"
+                  : "#A23B3B",
+                fontSize: "13px",
+              }}
+            >
               {mensaje}
             </p>
           )}
-        </form>
 
-        <p className="registro-login">
-          ¿Ya tenés una cuenta?{" "}
-          <button type="button" onClick={onVolverLogin}>
-            Iniciá sesión
+          {!exito ? (
+            <button
+              type="submit"
+              style={{
+                width: "100%",
+                padding: "13px",
+                background: "#8B5E5E",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "9px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Crear cuenta
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onVolverLogin}
+              style={{
+                width: "100%",
+                padding: "13px",
+                background: "#8B5E5E",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "9px",
+                cursor: "pointer",
+              }}
+            >
+              Ir a iniciar sesión
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onVolverLogin}
+            style={{
+              display: "block",
+              margin: "20px auto 0",
+              color: "#8B5E5E",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Volver al Login
           </button>
-        </p>
+        </form>
       </section>
     </main>
-  );
-}
-
-function Campo({
-  label,
-  name,
-  value,
-  onChange,
-  error,
-  placeholder,
-  type = "text",
-}) {
-  return (
-    <div className="registro-campo">
-      <label htmlFor={`registro-${name}`}>{label}</label>
-      <input
-        id={`registro-${name}`}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? `error-${name}` : undefined}
-        autoComplete="off"
-      />
-      {error && (
-        <p id={`error-${name}`} className="registro-error" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
   );
 }

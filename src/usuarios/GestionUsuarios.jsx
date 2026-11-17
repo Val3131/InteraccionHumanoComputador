@@ -3,101 +3,30 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import "./GestionUsuarios.css";
 
-const CLAVE_USUARIOS = "bellasbotique_usuarios_demo";
-
-const usuariosIniciales = [
-  {
-    id: 1,
-    nombre: "María González",
-    correo: "maria@ejemplo.com",
-    rol: "cliente",
-    estado: "activo",
-  },
-  {
-    id: 2,
-    nombre: "Andrea López",
-    correo: "andrea@ejemplo.com",
-    rol: "vendedor",
-    estado: "activo",
-  },
-  {
-    id: 3,
-    nombre: "Carlos Méndez",
-    correo: "carlos@ejemplo.com",
-    rol: "cliente",
-    estado: "inactivo",
-  },
-  {
-    id: 4,
-    nombre: "Sofía Rodríguez",
-    correo: "sofia@ejemplo.com",
-    rol: "administrador",
-    estado: "activo",
-  },
-];
-
 const rolesPermitidos = [
   "cliente",
   "vendedor",
   "administrador",
 ];
 
-function cargarUsuarios() {
-  try {
-    const guardados = sessionStorage.getItem(CLAVE_USUARIOS);
-
-    if (guardados) {
-      const datos = JSON.parse(guardados);
-
-      if (
-        Array.isArray(datos) &&
-        datos.every(
-          (u) =>
-            u.id != null &&
-            typeof u.nombre === "string" &&
-            typeof u.correo === "string" &&
-            rolesPermitidos.includes(u.rol) &&
-            ["activo", "inactivo"].includes(u.estado)
-        )
-      ) {
-        return datos;
-      }
-    }
-  } catch (error) {
-    console.error("Error leyendo usuarios:", error);
-  }
-
-  return usuariosIniciales.map((u) => ({ ...u }));
-}
-
 export default function GestionUsuarios({ onVolver }) {
-  const { usuario, registrarActividad } = useAuth();
+  const {
+    usuario,
+    usuarios,
+    actualizarRolUsuario,
+    actualizarEstadoUsuario,
+  } = useAuth();
 
-  const [usuarios, setUsuarios] = useState(cargarUsuarios);
   const [busqueda, setBusqueda] = useState("");
   const [filtroRol, setFiltroRol] = useState("todos");
 
-  // Datos del usuario que se está editando.
   const [edicion, setEdicion] = useState(null);
   const [mensaje, setMensaje] = useState("");
-
-  const guardarUsuarios = (nuevosUsuarios) => {
-    setUsuarios(nuevosUsuarios);
-
-    try {
-      sessionStorage.setItem(
-        CLAVE_USUARIOS,
-        JSON.stringify(nuevosUsuarios)
-      );
-    } catch (error) {
-      console.error("Error guardando usuarios:", error);
-    }
-  };
+  const [tipoMensaje, setTipoMensaje] = useState("");
 
   const comenzarEdicion = (cuenta) => {
     setEdicion({
       id: cuenta.id,
-      rolOriginal: cuenta.rol,
       rolNuevo: cuenta.rol,
     });
 
@@ -105,14 +34,11 @@ export default function GestionUsuarios({ onVolver }) {
   };
 
   const cambiarRolSeleccionado = (nuevoRol) => {
-    setEdicion((anterior) => {
-      if (!anterior) return null;
-
-      return {
-        ...anterior,
-        rolNuevo: nuevoRol,
-      };
-    });
+    setEdicion((anterior) =>
+      anterior
+        ? { ...anterior, rolNuevo: nuevoRol }
+        : anterior
+    );
   };
 
   const cancelarEdicion = () => {
@@ -121,122 +47,52 @@ export default function GestionUsuarios({ onVolver }) {
   };
 
   const guardarRol = () => {
-    if (usuario?.rol !== "administrador") return;
     if (!edicion) return;
 
-    const cuenta = usuarios.find(
-      (u) => u.id === edicion.id
-    );
-
-    if (!cuenta) {
-      setMensaje("No se encontró el usuario.");
-      return;
-    }
-
-    const nuevoRol = edicion.rolNuevo;
-
-    if (!rolesPermitidos.includes(nuevoRol)) {
+    if (!rolesPermitidos.includes(edicion.rolNuevo)) {
+      setTipoMensaje("error");
       setMensaje("Seleccioná un rol válido.");
       return;
     }
 
-    if (cuenta.rol === nuevoRol) {
-      setMensaje("No se realizaron cambios en el rol.");
-      setEdicion(null);
-      return;
-    }
-
-    const rolAnterior = cuenta.rol;
-
-    // Crear una lista nueva con el rol actualizado.
-    const usuariosActualizados = usuarios.map((u) => {
-      if (u.id === cuenta.id) {
-        return {
-          ...u,
-          rol: nuevoRol,
-        };
-      }
-
-      return u;
-    });
-
-    // Guardar el resultado en React y sessionStorage.
-    guardarUsuarios(usuariosActualizados);
-
-    // Registrar el cambio en la bitácora.
-    registrarActividad({
-      actor: usuario,
-      tipo: "usuarios",
-      accion: "Cambio de rol",
-      detalle:
-        `${cuenta.nombre} (${cuenta.correo}): ` +
-        `${rolAnterior} → ${nuevoRol}`,
-    });
-
-    // Mostrar todos los roles para no ocultar
-    // al usuario que acabamos de modificar.
-    setFiltroRol("todos");
-    setBusqueda("");
-
-    setEdicion(null);
-
-    setMensaje(
-      `¡Rol actualizado! ${cuenta.nombre} cambió ` +
-      `de ${rolAnterior} a ${nuevoRol}. ` +
-      "El cambio fue registrado en la bitácora."
+    const resultado = actualizarRolUsuario(
+      edicion.id,
+      edicion.rolNuevo
     );
+
+    setMensaje(resultado.mensaje);
+    setTipoMensaje(resultado.exito ? "exito" : "error");
+
+    if (resultado.exito) {
+      setEdicion(null);
+
+      // Evita que el filtro oculte la cuenta
+      // después de cambiar su rol.
+      setFiltroRol("todos");
+      setBusqueda("");
+    } else if (
+      resultado.mensaje === "No se realizaron cambios."
+    ) {
+      setEdicion(null);
+    }
   };
 
   const cambiarEstado = (cuenta) => {
-    if (usuario?.rol !== "administrador") return;
+    const resultado = actualizarEstadoUsuario(cuenta.id);
 
-    const nuevoEstado =
-      cuenta.estado === "activo" ? "inactivo" : "activo";
-
-    const usuariosActualizados = usuarios.map((u) =>
-      u.id === cuenta.id
-        ? { ...u, estado: nuevoEstado }
-        : u
-    );
-
-    guardarUsuarios(usuariosActualizados);
-
-    registrarActividad({
-      actor: usuario,
-      tipo: "usuarios",
-      accion: "Cambio de estado",
-      detalle:
-        `${cuenta.nombre} (${cuenta.correo}): ` +
-        `${cuenta.estado} → ${nuevoEstado}`,
-    });
-
-    setMensaje(
-      `La cuenta de ${cuenta.nombre} ahora está ${nuevoEstado}.`
-    );
+    setMensaje(resultado.mensaje);
+    setTipoMensaje(resultado.exito ? "exito" : "error");
   };
-
-  const usuariosFiltrados = usuarios.filter((cuenta) => {
-    const texto = busqueda.trim().toLowerCase();
-
-    const coincideBusqueda =
-      cuenta.nombre.toLowerCase().includes(texto) ||
-      cuenta.correo.toLowerCase().includes(texto);
-
-    const coincideRol =
-      filtroRol === "todos" || cuenta.rol === filtroRol;
-
-    return coincideBusqueda && coincideRol;
-  });
-
-  const activos = usuarios.filter(
-    (u) => u.estado === "activo"
-  ).length;
 
   if (usuario?.rol !== "administrador") {
     return (
       <main className="gestion-usuarios">
         <section className="gestion-contenido">
           <h2>Acceso no permitido</h2>
+          <p>
+            Esta sección es exclusiva del administrador.
+          </p>
+
           <button type="button" onClick={onVolver}>
             Volver al panel
           </button>
@@ -244,6 +100,35 @@ export default function GestionUsuarios({ onVolver }) {
       </main>
     );
   }
+
+  const usuariosFiltrados = usuarios.filter((cuenta) => {
+    const texto = busqueda.trim().toLowerCase();
+
+    const nombreCompleto = [
+      cuenta.nombre,
+      cuenta.apellidos,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const coincideBusqueda =
+      nombreCompleto.toLowerCase().includes(texto) ||
+      cuenta.correo.toLowerCase().includes(texto);
+
+    const coincideRol =
+      filtroRol === "todos" ||
+      cuenta.rol === filtroRol;
+
+    return coincideBusqueda && coincideRol;
+  });
+
+  const activos = usuarios.filter(
+    (cuenta) => cuenta.estado === "activo"
+  ).length;
+
+  const registrados = usuarios.filter(
+    (cuenta) => cuenta.origen === "registro"
+  ).length;
 
   return (
     <main className="gestion-usuarios">
@@ -257,16 +142,18 @@ export default function GestionUsuarios({ onVolver }) {
 
       <section className="gestion-contenido">
         <div className="gestion-encabezado">
-          <span className="gestion-etiqueta">
-            Administración
-          </span>
+          <div>
+            <span className="gestion-etiqueta">
+              Administración
+            </span>
 
-          <h2>Gestión de usuarios</h2>
+            <h2>Gestión de usuarios</h2>
 
-          <p>
-            Consultá y administrá las cuentas
-            de BellasBotique.
-          </p>
+            <p>
+              Consultá y administrá las cuentas
+              registradas en BellasBotique.
+            </p>
+          </div>
         </div>
 
         <div className="gestion-estadisticas">
@@ -287,6 +174,17 @@ export default function GestionUsuarios({ onVolver }) {
         </div>
 
         <div className="gestion-panel">
+          <p
+            style={{
+              fontSize: "13px",
+              color: "#8B5E5E",
+              marginBottom: "20px",
+            }}
+          >
+            Clientes nuevos registrados en esta sesión:{" "}
+            <strong>{registrados}</strong>
+          </p>
+
           <div className="gestion-filtros">
             <input
               type="search"
@@ -321,7 +219,16 @@ export default function GestionUsuarios({ onVolver }) {
           </div>
 
           {mensaje && (
-            <p className="gestion-mensaje" role="status">
+            <p
+              className="gestion-mensaje"
+              role="status"
+              style={{
+                color:
+                  tipoMensaje === "error"
+                    ? "#A23B3B"
+                    : "#26743C",
+              }}
+            >
               {mensaje}
             </p>
           )}
@@ -343,15 +250,38 @@ export default function GestionUsuarios({ onVolver }) {
                   const estaEditando =
                     edicion?.id === cuenta.id;
 
+                  const nombreCompleto = [
+                    cuenta.nombre,
+                    cuenta.apellidos,
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+
                   return (
                     <tr key={cuenta.id}>
-                      <td>{cuenta.nombre}</td>
+                      <td>
+                        {nombreCompleto}
+
+                        {cuenta.origen === "registro" && (
+                          <span
+                            style={{
+                              display: "block",
+                              fontSize: "11px",
+                              color: "#8B5E5E",
+                              marginTop: "5px",
+                            }}
+                          >
+                            Nuevo registro
+                          </span>
+                        )}
+                      </td>
+
                       <td>{cuenta.correo}</td>
 
                       <td>
                         {estaEditando ? (
                           <select
-                            aria-label={`Rol de ${cuenta.nombre}`}
+                            aria-label={`Rol de ${nombreCompleto}`}
                             value={edicion.rolNuevo}
                             onChange={(e) =>
                               cambiarRolSeleccionado(
@@ -413,10 +343,10 @@ export default function GestionUsuarios({ onVolver }) {
                               <button
                                 type="button"
                                 className="gestion-editar"
+                                disabled={edicion !== null}
                                 onClick={() =>
                                   comenzarEdicion(cuenta)
                                 }
-                                disabled={edicion !== null}
                               >
                                 Editar
                               </button>
@@ -424,10 +354,10 @@ export default function GestionUsuarios({ onVolver }) {
                               <button
                                 type="button"
                                 className="gestion-estado-boton"
+                                disabled={edicion !== null}
                                 onClick={() =>
                                   cambiarEstado(cuenta)
                                 }
-                                disabled={edicion !== null}
                               >
                                 {cuenta.estado === "activo"
                                   ? "Desactivar"
@@ -454,6 +384,20 @@ export default function GestionUsuarios({ onVolver }) {
               </tbody>
             </table>
           </div>
+
+          <p
+            style={{
+              color: "#777777",
+              fontSize: "12px",
+              marginTop: "20px",
+            }}
+          >
+            Los usuarios de ejemplo no tienen
+            credenciales para iniciar sesión.
+            Las cuentas nuevas se conservan
+            únicamente en memoria durante
+            esta demostración.
+          </p>
         </div>
       </section>
     </main>
