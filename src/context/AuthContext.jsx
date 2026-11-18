@@ -13,6 +13,12 @@ const CLAVE_BITACORA = "bellasbotique_bitacora_demo";
 const DURACION_CODIGO = 10 * 60 * 1000;
 const MAX_INTENTOS_CODIGO = 3;
 
+const ROLES_VALIDOS = [
+  "cliente",
+  "vendedor",
+  "administrador",
+];
+
 const usuariosDemo = {
   cliente: {
     id: "demo-cliente",
@@ -85,11 +91,43 @@ const usuariosIniciales = [
   },
 ];
 
-const ROLES_VALIDOS = [
-  "cliente",
-  "vendedor",
-  "administrador",
-];
+// Regla única para Registro y Recuperación.
+export function evaluarContrasena(valor = "") {
+  const contrasena = String(valor);
+
+  const reglas = [
+    {
+      id: "longitud",
+      texto: "Mínimo 8 caracteres",
+      cumple: contrasena.length >= 8,
+    },
+    {
+      id: "mayuscula",
+      texto: "Al menos una mayúscula",
+      cumple: /[A-Z]/.test(contrasena),
+    },
+    {
+      id: "minuscula",
+      texto: "Al menos una minúscula",
+      cumple: /[a-z]/.test(contrasena),
+    },
+    {
+      id: "numero",
+      texto: "Al menos un número",
+      cumple: /\d/.test(contrasena),
+    },
+    {
+      id: "especial",
+      texto: "Al menos un carácter especial",
+      cumple: /[^A-Za-z0-9\s]/.test(contrasena),
+    },
+  ];
+
+  return {
+    valida: reglas.every((regla) => regla.cumple),
+    reglas,
+  };
+}
 
 function generarId() {
   return crypto.randomUUID();
@@ -98,6 +136,7 @@ function generarId() {
 function generarCodigo() {
   const valores = new Uint32Array(1);
   crypto.getRandomValues(valores);
+
   return String(valores[0] % 1000000).padStart(6, "0");
 }
 
@@ -110,6 +149,7 @@ function leerBitacora() {
     const datos = JSON.parse(
       sessionStorage.getItem(CLAVE_BITACORA) || "[]"
     );
+
     return Array.isArray(datos) ? datos : [];
   } catch {
     return [];
@@ -126,12 +166,10 @@ export function AuthProvider({ children }) {
     usuariosIniciales.map((cuenta) => ({ ...cuenta }))
   );
 
-  // Las contraseñas de demostración solo viven
-  // en memoria. Nunca se guardan en sessionStorage.
+  // Credenciales de prueba solo en memoria de React.
   const [cuentasRegistradas, setCuentasRegistradas] =
     useState([]);
 
-  // Códigos temporales exclusivos de la demostración.
   const [recuperaciones, setRecuperaciones] = useState({});
 
   useEffect(() => {
@@ -262,11 +300,12 @@ export function AuthProvider({ children }) {
         };
       }
 
-      if (contrasena.length < 8) {
+      if (!evaluarContrasena(contrasena).valida) {
         return {
           exito: false,
           mensaje:
-            "La contraseña debe tener al menos 8 caracteres.",
+            "La contraseña debe tener mínimo 8 caracteres, " +
+            "mayúscula, minúscula, número y carácter especial.",
         };
       }
 
@@ -658,7 +697,6 @@ export function AuthProvider({ children }) {
     [usuario, usuarios, registrarActividad]
   );
 
-  // GENERAR RECUPERACIÓN
   const solicitarRecuperacion = useCallback(
     (correoIngresado) => {
       const correo = normalizarCorreo(correoIngresado);
@@ -680,8 +718,6 @@ export function AuthProvider({ children }) {
         (c) => c.id === cuenta?.id
       );
 
-      // Solo se permite restablecer cuentas
-      // creadas desde el Registro de esta sesión.
       if (!cuenta || !existeCredencial) {
         return {
           exito: false,
@@ -722,7 +758,6 @@ export function AuthProvider({ children }) {
     [usuarios, cuentasRegistradas, registrarActividad]
   );
 
-  // RESTABLECER CONTRASEÑA
   const restablecerContrasena = useCallback(
     (correoIngresado, codigoIngresado, nueva, confirmar) => {
       const correo = normalizarCorreo(correoIngresado);
@@ -735,11 +770,14 @@ export function AuthProvider({ children }) {
         };
       }
 
-      if (String(nueva).length < 8) {
+      // Nueva validación obligatoria.
+      if (!evaluarContrasena(nueva).valida) {
         return {
           exito: false,
           mensaje:
-            "La contraseña debe tener al menos 8 caracteres.",
+            "La nueva contraseña debe tener mínimo " +
+            "8 caracteres, mayúscula, minúscula, " +
+            "número y carácter especial.",
         };
       }
 

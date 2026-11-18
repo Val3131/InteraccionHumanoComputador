@@ -1,7 +1,127 @@
 
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import {
+  useAuth,
+  evaluarContrasena,
+} from "../../context/AuthContext";
 import "./Recuperacion.css";
+
+const estilos = {
+  pagina: {
+    minHeight: "100vh",
+    background: "#FAF7F5",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "30px 16px",
+    boxSizing: "border-box",
+    fontFamily: "'Inter', sans-serif",
+  },
+  tarjeta: {
+    background: "#FFFFFF",
+    width: "100%",
+    maxWidth: "460px",
+    borderRadius: "18px",
+    padding: "35px",
+    boxSizing: "border-box",
+    boxShadow: "0 12px 35px rgba(139,94,94,0.10)",
+    color: "#2B2B2B",
+  },
+  titulo: {
+    color: "#8B5E5E",
+    fontFamily: "'Playfair Display', serif",
+    textAlign: "center",
+  },
+  campo: {
+    width: "100%",
+    padding: "13px",
+    border: "1px solid #E7DADA",
+    borderRadius: "9px",
+    boxSizing: "border-box",
+    marginTop: "8px",
+    marginBottom: "18px",
+    fontSize: "14px",
+    background: "#FFFFFF",
+    color: "#2B2B2B",
+  },
+  boton: {
+    width: "100%",
+    background: "#8B5E5E",
+    color: "#FFFFFF",
+    border: "none",
+    padding: "14px",
+    borderRadius: "9px",
+    cursor: "pointer",
+    fontWeight: "600",
+    fontSize: "14px",
+    marginTop: "8px",
+  },
+  secundario: {
+    background: "transparent",
+    color: "#8B5E5E",
+    border: "none",
+    cursor: "pointer",
+    display: "block",
+    margin: "20px auto 0",
+    fontSize: "14px",
+  },
+};
+
+function ReglasContrasena({ valor }) {
+  const { reglas, valida } = evaluarContrasena(valor);
+
+  return (
+    <div
+      style={{
+        background: "#FAF7F5",
+        borderRadius: "10px",
+        padding: "14px",
+        marginBottom: "20px",
+      }}
+    >
+      <p
+        style={{
+          color: "#8B5E5E",
+          fontSize: "13px",
+          fontWeight: 600,
+          margin: "0 0 10px",
+        }}
+      >
+        Seguridad de la nueva contraseña
+      </p>
+
+      {reglas.map((regla) => (
+        <p
+          key={regla.id}
+          style={{
+            color: regla.cumple ? "#26743C" : "#777777",
+            margin: "7px 0",
+            fontSize: "12px",
+          }}
+        >
+          <span aria-hidden="true">
+            {regla.cumple ? "✓ " : "○ "}
+          </span>
+          {regla.texto}
+        </p>
+      ))}
+
+      <p
+        role="status"
+        style={{
+          margin: "10px 0 0",
+          fontSize: "12px",
+          fontWeight: 600,
+          color: valida ? "#26743C" : "#8B5E5E",
+        }}
+      >
+        {valida
+          ? "Contraseña válida"
+          : "Completá todos los requisitos"}
+      </p>
+    </div>
+  );
+}
 
 export default function Recuperacion({ onVolverLogin }) {
   const {
@@ -15,8 +135,10 @@ export default function Recuperacion({ onVolverLogin }) {
   const [codigoDemo, setCodigoDemo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [confirmar, setConfirmar] = useState("");
+
   const [mostrarContrasena, setMostrarContrasena] =
     useState(false);
+
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState(false);
 
@@ -69,66 +191,8 @@ export default function Recuperacion({ onVolverLogin }) {
     setError(false);
   };
 
-  const estilos = {
-    pagina: {
-      minHeight: "100vh",
-      background: "#FAF7F5",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "30px 16px",
-      boxSizing: "border-box",
-      fontFamily: "'Inter', sans-serif",
-    },
-    tarjeta: {
-      background: "#FFFFFF",
-      width: "100%",
-      maxWidth: "460px",
-      borderRadius: "18px",
-      boxSizing: "border-box",
-      padding: "35px",
-      boxShadow: "0 12px 35px rgba(139,94,94,0.10)",
-      color: "#2B2B2B",
-    },
-    titulo: {
-      color: "#8B5E5E",
-      fontFamily: "'Playfair Display', serif",
-      textAlign: "center",
-    },
-    campo: {
-      width: "100%",
-      padding: "13px",
-      border: "1px solid #E7DADA",
-      borderRadius: "9px",
-      boxSizing: "border-box",
-      marginTop: "8px",
-      marginBottom: "18px",
-      fontSize: "14px",
-      background: "#FFFFFF",
-      color: "#2B2B2B",
-    },
-    boton: {
-      width: "100%",
-      background: "#8B5E5E",
-      color: "#FFFFFF",
-      border: "none",
-      padding: "14px",
-      borderRadius: "9px",
-      cursor: "pointer",
-      fontWeight: "600",
-      fontSize: "14px",
-      marginTop: "8px",
-    },
-    secundario: {
-      background: "transparent",
-      color: "#8B5E5E",
-      border: "none",
-      cursor: "pointer",
-      display: "block",
-      margin: "20px auto 0",
-      fontSize: "14px",
-    },
-  };
+  const contrasenaValida =
+    evaluarContrasena(contrasena).valida;
 
   return (
     <main
@@ -175,9 +239,9 @@ export default function Recuperacion({ onVolverLogin }) {
                 marginBottom: "25px",
               }}
             >
-              Ingresá el correo con el que creaste
-              tu cuenta para generar un código
-              de recuperación de demostración.
+              Ingresá el correo de tu cuenta para
+              generar un código de recuperación
+              de demostración.
             </p>
 
             <form onSubmit={solicitarCodigo}>
@@ -302,12 +366,12 @@ export default function Recuperacion({ onVolverLogin }) {
                 onChange={(e) =>
                   setContrasena(e.target.value)
                 }
-                placeholder="Mínimo 8 caracteres"
                 autoComplete="new-password"
-                minLength={8}
                 required
                 style={estilos.campo}
               />
+
+              <ReglasContrasena valor={contrasena} />
 
               <label htmlFor="recuperar-confirmar">
                 Confirmar nueva contraseña
@@ -322,11 +386,27 @@ export default function Recuperacion({ onVolverLogin }) {
                 onChange={(e) =>
                   setConfirmar(e.target.value)
                 }
-                placeholder="Repetí la contraseña"
                 autoComplete="new-password"
                 required
                 style={estilos.campo}
               />
+
+              {confirmar && (
+                <p
+                  style={{
+                    fontSize: "12px",
+                    margin: "-6px 0 16px",
+                    color:
+                      confirmar === contrasena
+                        ? "#26743C"
+                        : "#A23B3B",
+                  }}
+                >
+                  {confirmar === contrasena
+                    ? "✓ Las contraseñas coinciden"
+                    : "Las contraseñas no coinciden"}
+                </p>
+              )}
 
               <label
                 style={{
@@ -349,7 +429,26 @@ export default function Recuperacion({ onVolverLogin }) {
 
               <button
                 type="submit"
-                style={estilos.boton}
+                disabled={
+                  !contrasenaValida ||
+                  confirmar !== contrasena ||
+                  codigo.length !== 6
+                }
+                style={{
+                  ...estilos.boton,
+                  opacity:
+                    contrasenaValida &&
+                    confirmar === contrasena &&
+                    codigo.length === 6
+                      ? 1
+                      : 0.55,
+                  cursor:
+                    contrasenaValida &&
+                    confirmar === contrasena &&
+                    codigo.length === 6
+                      ? "pointer"
+                      : "not-allowed",
+                }}
               >
                 Guardar nueva contraseña
               </button>

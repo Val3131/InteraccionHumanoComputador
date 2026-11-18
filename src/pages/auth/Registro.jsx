@@ -1,6 +1,9 @@
 
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import {
+  useAuth,
+  evaluarContrasena,
+} from "../../context/AuthContext";
 import "./Registro.css";
 
 const datosIniciales = {
@@ -13,6 +16,83 @@ const datosIniciales = {
   contrasena: "",
   confirmar: "",
 };
+
+const estiloCampo = {
+  width: "100%",
+  boxSizing: "border-box",
+  padding: "12px",
+  borderRadius: "8px",
+  border: "1px solid #E7DADA",
+  background: "#FFFFFF",
+  color: "#2B2B2B",
+  fontSize: "14px",
+  marginTop: "6px",
+};
+
+const estiloGrupo = {
+  display: "flex",
+  flexDirection: "column",
+  marginBottom: "17px",
+  gap: "3px",
+};
+
+function ReglasContrasena({ valor }) {
+  const evaluacion = evaluarContrasena(valor);
+
+  return (
+    <div
+      style={{
+        background: "#FAF7F5",
+        padding: "14px",
+        borderRadius: "10px",
+        margin: "8px 0 18px",
+      }}
+    >
+      <p
+        style={{
+          fontWeight: 600,
+          color: "#8B5E5E",
+          fontSize: "13px",
+          margin: "0 0 10px",
+        }}
+      >
+        Requisitos de seguridad
+      </p>
+
+      {evaluacion.reglas.map((regla) => (
+        <p
+          key={regla.id}
+          style={{
+            color: regla.cumple ? "#26743C" : "#777777",
+            fontSize: "12px",
+            margin: "7px 0",
+          }}
+        >
+          <span aria-hidden="true">
+            {regla.cumple ? "✓ " : "○ "}
+          </span>
+          {regla.texto}
+        </p>
+      ))}
+
+      <p
+        role="status"
+        style={{
+          fontSize: "12px",
+          margin: "12px 0 0",
+          color: evaluacion.valida
+            ? "#26743C"
+            : "#8B5E5E",
+          fontWeight: 600,
+        }}
+      >
+        {evaluacion.valida
+          ? "Contraseña válida"
+          : "Completá todos los requisitos"}
+      </p>
+    </div>
+  );
+}
 
 export default function Registro({ onVolverLogin }) {
   const { registrarUsuario } = useAuth();
@@ -48,23 +128,32 @@ export default function Registro({ onVolverLogin }) {
     }
   };
 
-  const estiloCampo = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "7px",
-    marginBottom: "15px",
-    textAlign: "left",
-  };
-
-  const estiloInput = {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: "12px",
-    borderRadius: "8px",
-    border: "1px solid #E7DADA",
-    background: "#FFFFFF",
-    color: "#2B2B2B",
-  };
+  const campos = [
+    {
+      nombre: "cedula",
+      etiqueta: "Número de cédula",
+      placeholder: "123456789",
+    },
+    {
+      nombre: "nombre",
+      etiqueta: "Nombre",
+    },
+    {
+      nombre: "apellidos",
+      etiqueta: "Apellidos",
+    },
+    {
+      nombre: "correo",
+      etiqueta: "Correo electrónico",
+      tipo: "email",
+    },
+    {
+      nombre: "telefono",
+      etiqueta: "Teléfono",
+      tipo: "tel",
+      placeholder: "88888888",
+    },
+  ];
 
   return (
     <main
@@ -76,19 +165,21 @@ export default function Registro({ onVolverLogin }) {
         justifyContent: "center",
         padding: "35px 16px",
         boxSizing: "border-box",
+        fontFamily: "'Inter', sans-serif",
       }}
     >
       <section
         className="registro-card"
         style={{
+          background: "#FFFFFF",
           width: "100%",
           maxWidth: "560px",
-          background: "#FFFFFF",
           borderRadius: "18px",
           padding: "32px",
           boxSizing: "border-box",
-          boxShadow: "0 12px 35px rgba(139,94,94,0.10)",
           height: "fit-content",
+          boxShadow:
+            "0 12px 35px rgba(139,94,94,0.10)",
         }}
       >
         <div style={{ textAlign: "center" }}>
@@ -96,7 +187,6 @@ export default function Registro({ onVolverLogin }) {
             style={{
               color: "#8B5E5E",
               fontFamily: "'Playfair Display', serif",
-              marginBottom: "8px",
             }}
           >
             BellasBotique
@@ -106,107 +196,61 @@ export default function Registro({ onVolverLogin }) {
             Crear cuenta
           </h2>
 
-          <p style={{ color: "#777777", fontSize: "14px" }}>
+          <p
+            style={{
+              color: "#777777",
+              fontSize: "14px",
+              marginBottom: "25px",
+            }}
+          >
             Registrate para comenzar a comprar.
           </p>
         </div>
 
         <form onSubmit={registrar}>
-          <div style={estiloCampo}>
-            <label htmlFor="registro-cedula">
-              Número de cédula
-            </label>
-            <input
-              id="registro-cedula"
-              name="cedula"
-              value={datos.cedula}
-              onChange={cambiarDato}
-              placeholder="Ejemplo: 123456789"
-              style={estiloInput}
-              required
-            />
-          </div>
+          {campos.map((campo) => (
+            <div
+              key={campo.nombre}
+              style={estiloGrupo}
+            >
+              <label htmlFor={`registro-${campo.nombre}`}>
+                {campo.etiqueta}
+              </label>
 
-          <div style={estiloCampo}>
-            <label htmlFor="registro-nombre">
-              Nombre
-            </label>
-            <input
-              id="registro-nombre"
-              name="nombre"
-              value={datos.nombre}
-              onChange={cambiarDato}
-              style={estiloInput}
-              required
-            />
-          </div>
+              <input
+                id={`registro-${campo.nombre}`}
+                name={campo.nombre}
+                type={campo.tipo || "text"}
+                value={datos[campo.nombre]}
+                onChange={cambiarDato}
+                placeholder={campo.placeholder || ""}
+                style={estiloCampo}
+                required
+              />
+            </div>
+          ))}
 
-          <div style={estiloCampo}>
-            <label htmlFor="registro-apellidos">
-              Apellidos
-            </label>
-            <input
-              id="registro-apellidos"
-              name="apellidos"
-              value={datos.apellidos}
-              onChange={cambiarDato}
-              style={estiloInput}
-              required
-            />
-          </div>
-
-          <div style={estiloCampo}>
-            <label htmlFor="registro-correo">
-              Correo electrónico
-            </label>
-            <input
-              id="registro-correo"
-              name="correo"
-              type="email"
-              value={datos.correo}
-              onChange={cambiarDato}
-              placeholder="ejemplo@correo.com"
-              style={estiloInput}
-              required
-              autoComplete="email"
-            />
-          </div>
-
-          <div style={estiloCampo}>
-            <label htmlFor="registro-telefono">
-              Teléfono
-            </label>
-            <input
-              id="registro-telefono"
-              name="telefono"
-              type="tel"
-              value={datos.telefono}
-              onChange={cambiarDato}
-              placeholder="88888888"
-              style={estiloInput}
-              required
-            />
-          </div>
-
-          <div style={estiloCampo}>
+          <div style={estiloGrupo}>
             <label htmlFor="registro-direccion">
               Dirección
             </label>
+
             <textarea
               id="registro-direccion"
               name="direccion"
               value={datos.direccion}
               onChange={cambiarDato}
-              rows="3"
-              style={estiloInput}
+              rows={3}
+              style={estiloCampo}
               required
             />
           </div>
 
-          <div style={estiloCampo}>
+          <div style={estiloGrupo}>
             <label htmlFor="registro-contrasena">
               Contraseña
             </label>
+
             <input
               id="registro-contrasena"
               name="contrasena"
@@ -215,18 +259,21 @@ export default function Registro({ onVolverLogin }) {
               }
               value={datos.contrasena}
               onChange={cambiarDato}
-              placeholder="Mínimo 8 caracteres"
-              style={estiloInput}
-              required
-              minLength={8}
+              style={estiloCampo}
               autoComplete="new-password"
+              required
             />
           </div>
 
-          <div style={estiloCampo}>
+          <ReglasContrasena
+            valor={datos.contrasena}
+          />
+
+          <div style={estiloGrupo}>
             <label htmlFor="registro-confirmar">
               Confirmar contraseña
             </label>
+
             <input
               id="registro-confirmar"
               name="confirmar"
@@ -235,10 +282,26 @@ export default function Registro({ onVolverLogin }) {
               }
               value={datos.confirmar}
               onChange={cambiarDato}
-              style={estiloInput}
-              required
+              style={estiloCampo}
               autoComplete="new-password"
+              required
             />
+
+            {datos.confirmar && (
+              <small
+                style={{
+                  color:
+                    datos.confirmar === datos.contrasena
+                      ? "#26743C"
+                      : "#A23B3B",
+                  marginTop: "5px",
+                }}
+              >
+                {datos.confirmar === datos.contrasena
+                  ? "✓ Las contraseñas coinciden"
+                  : "Las contraseñas no coinciden"}
+              </small>
+            )}
           </div>
 
           <label
@@ -247,7 +310,7 @@ export default function Registro({ onVolverLogin }) {
               alignItems: "center",
               gap: "8px",
               fontSize: "13px",
-              marginBottom: "18px",
+              marginBottom: "20px",
             }}
           >
             <input
@@ -279,39 +342,26 @@ export default function Registro({ onVolverLogin }) {
             </p>
           )}
 
-          {!exito ? (
-            <button
-              type="submit"
-              style={{
-                width: "100%",
-                padding: "13px",
-                background: "#8B5E5E",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "9px",
-                fontWeight: "600",
-                cursor: "pointer",
-              }}
-            >
-              Crear cuenta
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onVolverLogin}
-              style={{
-                width: "100%",
-                padding: "13px",
-                background: "#8B5E5E",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "9px",
-                cursor: "pointer",
-              }}
-            >
-              Ir a iniciar sesión
-            </button>
-          )}
+          <button
+            type={exito ? "button" : "submit"}
+            onClick={
+              exito ? onVolverLogin : undefined
+            }
+            style={{
+              width: "100%",
+              padding: "13px",
+              background: "#8B5E5E",
+              color: "#FFFFFF",
+              border: "none",
+              borderRadius: "9px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            {exito
+              ? "Ir a iniciar sesión"
+              : "Crear cuenta"}
+          </button>
 
           <button
             type="button"
