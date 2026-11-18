@@ -1,0 +1,203 @@
+
+.bitacora-page {
+  min-height: 100vh;
+  background: #FAF7F5;
+  font-family: 'Inter', sans-serif;
+  color: #2B2B2B;
+}
+
+.bitacora-header {
+  background: #FFFFFF;
+  padding: 20px clamp(20px, 6vw, 90px);
+  border-bottom: 1px solid #EADADA;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.bitacora-header h1 {
+  font-family: 'Playfair Display', serif;
+  color: #8B5E5E;
+  font-size: 30px;
+  margin: 0;
+}
+
+.bitacora-header button,
+.bitacora-contenido > button {
+  background: #8B5E5E;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 18px;
+  cursor: pointer;
+}
+
+.bitacora-header button:hover {
+  background: #714848;
+}
+
+.bitacora-contenido {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 55px 24px;
+}
+
+.bitacora-etiqueta {
+  display: inline-block;
+  background: #F3E3E3;
+  color: #8B5E5E;
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bitacora-contenido h2 {
+  font-family: 'Playfair Display', serif;
+  color: #8B5E5E;
+  font-size: 36px;
+  margin: 20px 0 10px;
+}
+
+.bitacora-descripcion {
+  color: #777777;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.bitacora-estadisticas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.bitacora-estadisticas article {
+  background: #FFFFFF;
+  border: 1px solid #F0E4E4;
+  border-radius: 15px;
+  padding: 25px;
+}
+
+.bitacora-estadisticas span {
+  display: block;
+  color: #777777;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.bitacora-estadisticas strong {
+  color: #8B5E5E;
+  font-size: 30px;
+}
+
+.bitacora-panel {
+  background: #FFFFFF;
+  border: 1px solid #F0E4E4;
+  border-radius: 16px;
+  padding: 25px;
+}
+
+.bitacora-filtros {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.bitacora-filtros input,
+.bitacora-filtros select {
+  background: #FFFFFF;
+  border: 1px solid #E7DADA;
+  border-radius: 9px;
+  padding: 12px;
+  color: #2B2B2B;
+  font-size: 13px;
+}
+
+.bitacora-filtros input {
+  flex: 1;
+  min-width: 0;
+}
+
+.bitacora-tabla-contenedor {
+  overflow-x: auto;
+}
+
+.bitacora-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+.bitacora-tabla th {
+  background: #FAF7F5;
+  color: #8B5E5E;
+  padding: 15px;
+  white-space: nowrap;
+}
+
+.bitacora-tabla td {
+  border-bottom: 1px solid #F0E4E4;
+  padding: 16px 15px;
+}
+
+.bitacora-tipo {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.bitacora-tipo.sesion {
+  color: #365C87;
+  background: #E8F0FA;
+}
+
+.bitacora-tipo.perfil {
+  color: #8B5E5E;
+  background: #F3E3E3;
+}
+
+.bitacora-tipo.usuarios {
+  color: #26743C;
+  background: #E5F4E8;
+}
+
+.bitacora-sin-datos {
+  text-align: center;
+  padding: 30px !important;
+  color: #777777;
+}
+
+.bitacora-nota {
+  margin-top: 20px;
+  color: #777777;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .bitacora-estadisticas {
+    grid-template-columns: 1fr;
+  }
+
+  .bitacora-filtros {
+    flex-direction: column;
+  }
+
+  .bitacora-tabla {
+    min-width: 850px;
+  }
+
+  .bitacora-contenido h2 {
+    font-size: 28px;
+  }
+
+  .bitacora-header h1 {
+    font-size: 24px;
+  }
+}

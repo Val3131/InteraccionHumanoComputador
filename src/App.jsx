@@ -1,122 +1,161 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+import { useState } from "react";
+
+import {
+  AuthProvider,
+  useAuth,
+} from "./context/AuthContext";
+
+import Login from "./pages/auth/Login";
+import Registro from "./pages/auth/Registro";
+import Recuperacion from "./pages/auth/Recuperacion";
+
+import InicioCliente from "./pages/cliente/InicioCliente";
+import InicioVendedor from "./pages/vendedor/InicioVendedor";
+import InicioAdmin from "./pages/admin/InicioAdmin";
+
+import GestionUsuarios from "./usuarios/GestionUsuarios";
+import MiPerfil from "./perfil/MiPerfil";
+
+import SessionTimeout from "./security/SessionTimeout";
+import IntentosLogin from "./security/IntentosLogin";
+import BitacoraActividades from "./security/BitacoraActividades";
+
+function ContenidoApp() {
+  const [pantalla, setPantalla] = useState("login");
+  const [vistaPrivada, setVistaPrivada] = useState("inicio");
+
+  const { usuario, iniciarDemo } = useAuth();
+
+  if (usuario) {
+    if (vistaPrivada === "perfil") {
+      return (
+        <MiPerfil
+          onVolver={() => setVistaPrivada("inicio")}
+        />
+      );
+    }
+
+    if (usuario.rol === "administrador") {
+      if (vistaPrivada === "usuarios") {
+        return (
+          <GestionUsuarios
+            onVolver={() => setVistaPrivada("inicio")}
+          />
+        );
+      }
+
+      if (vistaPrivada === "intentos") {
+        return (
+          <IntentosLogin
+            onVolver={() => setVistaPrivada("inicio")}
+          />
+        );
+      }
+
+      if (vistaPrivada === "bitacora") {
+        return (
+          <BitacoraActividades
+            onVolver={() => setVistaPrivada("inicio")}
+          />
+        );
+      }
+
+      return (
+        <InicioAdmin
+          onGestionUsuarios={() =>
+            setVistaPrivada("usuarios")
+          }
+          onMiPerfil={() =>
+            setVistaPrivada("perfil")
+          }
+          onIntentosLogin={() =>
+            setVistaPrivada("intentos")
+          }
+          onBitacora={() =>
+            setVistaPrivada("bitacora")
+          }
+        />
+      );
+    }
+
+    if (usuario.rol === "vendedor") {
+      return (
+        <InicioVendedor
+          onMiPerfil={() =>
+            setVistaPrivada("perfil")
+          }
+        />
+      );
+    }
+
+    if (usuario.rol === "cliente") {
+      return (
+        <InicioCliente
+          onMiPerfil={() =>
+            setVistaPrivada("perfil")
+          }
+        />
+      );
+    }
+
+    return <p>Rol no reconocido.</p>;
+  }
+
+  if (pantalla === "registro") {
+    return (
+      <Registro
+        onVolverLogin={() =>
+          setPantalla("login")
+        }
+      />
+    );
+  }
+
+  if (pantalla === "recuperacion") {
+    return (
+      <Recuperacion
+        onVolverLogin={() =>
+          setPantalla("login")
+        }
+      />
+    );
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <Login
+      onIrRegistro={() =>
+        setPantalla("registro")
+      }
+      onIrRecuperacion={() =>
+        setPantalla("recuperacion")
+      }
+      onIniciarDemo={(rol) => {
+        const correcto = iniciarDemo(rol);
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        if (correcto) {
+          setVistaPrivada("inicio");
+          setPantalla("login");
+        }
+      }}
+    />
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <SessionTimeout />
+      <ContenidoApp />
+    </AuthProvider>
+  );
+}
+
+
+
+
+
+
+
+
+
